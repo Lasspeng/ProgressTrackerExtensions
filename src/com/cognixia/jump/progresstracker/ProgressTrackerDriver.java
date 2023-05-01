@@ -28,72 +28,71 @@ public class ProgressTrackerDriver {
 		String password = null;
 		String menuChoice ;
 		System.out.println("Welcome to the TV Show Tracker!");
-		
-		
+
 
 		// Use try-with-resources to automatically close scanner
 		try (Scanner scan = new Scanner(System.in)) {
 			User u1;
 			do {
-			System.out.print("Username: ");
-			username = scan.next();
-			System.out.print("Password: ");
-			password = scan.next();
-			u1 = checkUser(username, password);
+				System.out.print("Username: ");
+				username = scan.next();
+				System.out.print("Password: ");
+				password = scan.next();
+				u1 = checkUser(username, password);
 			} while (u1.getUsername() == null);
 			System.out.println("Welcome "+ u1.getUsername() +"!" +"\n\n");
-			
+
 			if (u1.getRoleType() == 0) {
 				printUserShows(u1.getUserId());
 				String input;
 				do {
-				 input=promptUserActions(u1,scan);
+					input=promptUserActions(u1,scan);
 				}while(!input.equals("q"));
-				
+
 			} else {
 				do {
 					AdminDaoSql a1=new AdminDaoSql();
 					a1.setConnection();
 					menuChoice = promptAdminActions(scan);
-					
-					
+
+
 					//------------------
 					// CREATE NEW SHOW
 					//------------------
 					if (menuChoice.equals("1")) {
-						
-					 System.out.print("Show Name: ");
-					 String sName=scan.nextLine();
-					 
-					 System.out.print("Description: ");
-					 String desc=scan.nextLine();
 
-					 System.out.println("Number of Episodes:");
-					 int numEps=scan.nextInt();
-					 
-					 Show s1=new Show(sName,desc,numEps);
-					 a1.createShow(s1);
-					 a1.getAllShows();
-					 
-					 
-					//------------------
-					// UPDATE SHOW
-					//------------------
+						System.out.print("Show Name: ");
+						String sName=scan.nextLine();
+
+						System.out.print("Description: ");
+						String desc=scan.nextLine();
+
+						System.out.println("Number of Episodes:");
+						int numEps=scan.nextInt();
+
+						Show s1=new Show(sName,desc,numEps);
+						a1.createShow(s1);
+						a1.getAllShows();
+
+
+						//------------------
+						// UPDATE SHOW
+						//------------------
 					} else if (menuChoice.equals("2")) {
-						
+
 						a1.getAllShows();
 						System.out.print("Enter Show ID for update: ");
 						int id = scan.nextInt();
 						Optional<Show> show = a1.getShowById(id);
 						if(show.isPresent()) {
-							
+
 							Show validShow = show.get();
-							
+
 							String option1 = "1-Name", option2 = "2-Description", option3 = "3-Total number of episodes";
 							System.out.println("What would you like to update");
 							System.out.printf("%-20s %-20s %-20s\n",option1, option2, option3);
 							String option = scan.next();
-							
+
 							if(option.equals("1")) {
 								System.out.print("Enter new name: ");
 								scan.nextLine();
@@ -109,38 +108,38 @@ public class ProgressTrackerDriver {
 								int totalNum = scan.nextInt();
 								validShow.setNumEp(totalNum);
 							}
-							
+
 
 							a1.updateShow(validShow);
 							a1.getAllShows();
 						} else {
 							System.out.println("Invalid show entered");
 						}
-						
-				
-					//------------------
-					// DELETE SHOW
-					//------------------
+
+
+						//------------------
+						// DELETE SHOW
+						//------------------
 					} else if (menuChoice.equals("3")){
-						
+
 						a1.getAllShows();
 						System.out.println("Enter Show ID to delete: ");
 						int id = scan.nextInt();
-						
-						boolean deleted = a1.deleteShow(id);	
-						
+
+						boolean deleted = a1.deleteShow(id);
+
 						if(deleted) {
 							System.out.println("Deleted successfully");
 							a1.getAllShows();
 						}else {
 							System.out.println("Could not delete");
 						}
-						
+
 					} else if(menuChoice.equals("q")) {
 						System.out.println("Exiting program...");
 						break;
 					}
-				
+
 				} while (menuChoice.equals("1") || menuChoice.equals("2") || menuChoice.equals("3") || menuChoice.equals("q") );
 			}
 		} catch (Exception e) {
@@ -201,30 +200,30 @@ public class ProgressTrackerDriver {
 	}
 
 	public static String promptUserActions(User user,Scanner scan) {
-		
-		String option1 = "1-Add Show", option2 = "2-Update Progress",option3="3-View Favorites", option0 = "q-Quit";
+
+		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-View Other User Lists", option0 = "q-Quit";
 		System.out.println("\nWhat would you like to do?");
-		System.out.printf("%-20s %-20s %-20s\n", option1, option2, option3,option0);
+		System.out.printf("%-20s %-20s %-20s %-20s\n", option1, option2, option3, option4, option0);
 		UserDao userDao = new UserDaoSql();
-		
+
 		try {
 			userDao.setConnection();
 			String input = scan.next();
-			
+
 			if(input.equals("1")) {
 				userDao.getAllShows();
 				System.out.print("\nAdd show by ID: ");
 				int showId = scan.nextInt();
 				int userId = user.getUserId();
-				
+
 				System.out.println("What's your progress on the show?");
 				String progress1 = "1-Not Started", progress2 = "2-In Progress", progress3 = "3-Completed";
 				System.out.printf("%-20s %-20s %-20s\n", progress1, progress2, progress3);
 				int progressId = scan.nextInt();
-				
+
 				System.out.println("What would you rate the show (1-5)? ");
 				int rating = scan.nextInt();
-				
+
 				System.out.println("What episode are you on?");
 				int currEp = scan.nextInt();
 				Optional<Show> currShow = userDao.getShowById(showId);
@@ -238,44 +237,41 @@ public class ProgressTrackerDriver {
 				}
 				UserShow userShow = new UserShow(userId, showId, progressId, rating, currEp);
 				userDao.addShows(userShow);
-				
+
 				userDao.getShows(user.getUserId());
-				
-				
-				
+
+
 			} else if(input.equals("2")) {
 				// Gets all the user shows so user knows which one to update
 				userDao.getShows(user.getUserId());
 				System.out.println("\nUpdate progress by Show ID: ");
 				int showId = scan.nextInt();
 				Optional<Show> currShow = userDao.getShowById(showId);
-				
-				
+
+
 				if(currShow.isPresent()) {
 					Show validShow = currShow.get();
 					Optional<UserShow> showToUpdate = userDao.getUserShow(user.getUserId(),showId);
 					UserShow s2U=showToUpdate.get();
 					System.out.println("\nWhat would you like to update?");
-					String option4 = "1-Progress", option5 = "2-Rating", option6 = "3-Current Episode";
-					System.out.printf("%-20s %-20s %-20s\n", option4, option5, option6);
+					String option5 = "1-Progress", option6 = "2-Rating", option7 = "3-Current Episode";
+					System.out.printf("%-20s %-20s %-20s\n", option5, option6, option7);
 					int choice = scan.nextInt();
-					
-					
+
+
 					if(choice == 1) {
-						
+
 						System.out.println("What is your current progress?");
 						String progress1 = "1-Not Started", progress2 = "2-In Progress", progress3 = "3-Completed";
 						System.out.printf("%-20s %-20s %-20s\n", progress1, progress2, progress3);
 						int progressId = scan.nextInt();
 
-					
-						
-						
+
 						s2U.setProgressID(progressId);
 						userDao.updateShows(s2U);
 						userDao.getShows(user.getUserId());
-						
-						
+
+
 					} else if (choice == 2) {
 						System.out.println("How would you rate the show (1-5)?");
 						int rating = scan.nextInt();
@@ -298,12 +294,12 @@ public class ProgressTrackerDriver {
 						userDao.updateShows(s2U);
 						userDao.getShows(user.getUserId());
 					}
-					
-					
+
+
 				} else {
 					// Exception here?
 				}
-				
+
 			} else if(input.equals("3")) {
 				int menuChoice;
 				do {
@@ -327,11 +323,23 @@ public class ProgressTrackerDriver {
 						userDao.removeFavorite(user.getUserId(),showID);
 					}
 				} while (menuChoice != 0);
-			}
-			else if(input.equals("q")) {
+			} else if (input.equals("4")) {
+				userDao.getAllOtherUsers(user);
+				System.out.println();
+				System.out.println("Enter the username of the user whose list you want to view");
+				scan.nextLine();
+				String chosenUser = scan.nextLine();
+				Optional<User> selectedUser = Optional.of(userDao.getUserByUsername(chosenUser));
+				if (selectedUser.isEmpty()) {
+					System.out.println("User could not be found. Try again");
+				} else {
+					printUserShows(selectedUser.get().getUserId());
+				}
+
+			} else if(input.equals("q")) {
 				System.out.println("Exiting program...");
 			}
-			
+
 			return input;
 		}catch(CurrentEpOverTotalException e) {
 			System.out.println(e.getMessage());
@@ -342,29 +350,29 @@ public class ProgressTrackerDriver {
 		}
 		return null;
 	}
-	
+
 	public static String promptAdminActions(Scanner scan) {
-		
+
 		String option1 = "1-Create Show", option2 = "2-Update Show", option3 = "3-Delete Show", option4 = "q-Quit";
 		System.out.println("\nWhat would you like to do?");
 		System.out.printf("%-20s %-20s %-20s %-20s\n",option1, option2, option3, option4);
 		String menuChoice = null;
-		
+
 		try {
-			
+
 			menuChoice = scan.next();
 			scan.nextLine();
-			
+
 			return menuChoice;
-			
+
 		} catch (InputMismatchException e) {
 			System.out.println("Invalid choice entered");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
-		
+
 	}
-	
+
 }

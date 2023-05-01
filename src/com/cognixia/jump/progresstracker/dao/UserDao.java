@@ -16,6 +16,10 @@ public interface UserDao {
 	public boolean getShows(int id);
 	
 	public boolean getAllShows();
+
+	public void getAllOtherUsers(User currentUser);
+
+	public User getUserByUsername(String username);
 	
 	public Optional<Show> getShowById(int id);
 	
