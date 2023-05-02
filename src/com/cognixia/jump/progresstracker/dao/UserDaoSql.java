@@ -293,29 +293,27 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 	}
 
 	@Override
-	public boolean getAllShows() {
-
-		try(Statement stmnt = conn.createStatement();
-			ResultSet rs = stmnt.executeQuery("select * from shows")
-		){
-			System.out.printf("%10s %20s %20s %20s", "Show ID","Name", "Total Episodes","Description");
-			System.out.println("\n----------------------------------------------------------------------------------------------------------------");
-			while(rs.next()) {
-
-				int showId = rs.getInt("ShowID");
-				String name = rs.getString("Name");
-				String descript = rs.getString("Descript");
-				int numEp = rs.getInt("TotalEps");
-
-				System.out.printf("%10s %20s %20s %-10s%n", showId,name,numEp, descript);
-
+	public boolean getAllShows(int id) {
+		
+		try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where ShowID not in (select ShowID from users_shows where UserID=?)")){
+			pstmt.setInt(1,id);
+			ResultSet rs = pstmt.executeQuery();
+				System.out.printf("%10s %20s %20s %20s", "Show ID","Name", "Total Episodes","Description");
+				System.out.println("\n----------------------------------------------------------------------------------------------------------------");		
+				while(rs.next()) {
+					
+					int showId = rs.getInt("ShowID");
+					String name = rs.getString("Name");
+					String descript = rs.getString("Descript");
+					int numEp = rs.getInt("TotalEps");
+					
+					System.out.printf("%10s %20s %20s %-10s%n", showId,name,numEp, descript);	
+					
+				}
+				
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-
-
 		return false;
 	}
 
@@ -367,6 +365,22 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 
 		return Optional.empty();
 	}
+	
+	public boolean deleteUserShowById(int showID) {
+		try {
+			PreparedStatement pstmt = conn.prepareStatement("Delete from users_shows where ShowID = ?" );
+			pstmt.setInt(1,showID);
+			pstmt.executeUpdate();
+			
+		} 
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	
 
 
 }

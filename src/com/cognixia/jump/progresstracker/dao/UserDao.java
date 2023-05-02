@@ -15,7 +15,7 @@ public interface UserDao {
 	// Obtains the list of user shows
 	public boolean getShows(int id);
 	
-	public boolean getAllShows();
+	public boolean getAllShows(int id);
 
 	public void getAllOtherUsers(User currentUser);
 
@@ -33,6 +33,8 @@ public interface UserDao {
 	public boolean updateShows(UserShow show);
 
 
+	
+	public boolean deleteUserShowById(int showId);
 	
 	// Admin class that implements this interface will have create, update, and delete functions within its own class
 	
