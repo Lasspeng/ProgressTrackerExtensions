@@ -207,32 +207,32 @@ public class ProgressTrackerDriver {
 	}
 
 	public static String promptUserActions(User user,Scanner scan) {
-		
 
-		String option1 = "1-Add Show", option2 = "2-Update Progress",option3="3-View Favorites", option9= "4-Delete Show", option0 = "q-Log out";
+		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-Delete Show", option5 = "5-View Other Users' Lists", option0 = "q-Quit";
 		System.out.println("\nWhat would you like to do?");
-		System.out.printf("%-20s %-20s %-20s %-20s %-20s\n", option1, option2, option3,option9, option0);
+		System.out.printf("%-20s %-20s %-20s %-20s %-27s %-20s\n", option1, option2, option3, option4, option5, option0);
+
 
 		UserDao userDao = new UserDaoSql();
-		
+
 		try {
 			userDao.setConnection();
 			String input = scan.next();
-			
+
 			if(input.equals("1")) {
 				userDao.getAllShows(user.getUserId());
 				System.out.print("\nAdd show by ID: ");
 				int showId = scan.nextInt();
 				int userId = user.getUserId();
-				
+
 				System.out.println("What's your progress on the show?");
 				String progress1 = "1-Not Started", progress2 = "2-In Progress", progress3 = "3-Completed";
 				System.out.printf("%-20s %-20s %-20s\n", progress1, progress2, progress3);
 				int progressId = scan.nextInt();
-				
+
 				System.out.println("What would you rate the show (1-5)? ");
 				int rating = scan.nextInt();
-				
+
 				System.out.println("What episode are you on?");
 				int currEp = scan.nextInt();
 				Optional<Show> currShow = userDao.getShowById(showId);
@@ -260,33 +260,31 @@ public class ProgressTrackerDriver {
 				System.out.println("\nUpdate progress by Show ID: ");
 				int showId = scan.nextInt();
 				Optional<Show> currShow = userDao.getShowById(showId);
-				
-				
+
+
 				if(currShow.isPresent()) {
 					Show validShow = currShow.get();
 					Optional<UserShow> showToUpdate = userDao.getUserShow(user.getUserId(),showId);
 					UserShow s2U=showToUpdate.get();
 					System.out.println("\nWhat would you like to update?");
-					String option4 = "1-Progress", option5 = "2-Rating", option6 = "3-Current Episode";
-					System.out.printf("%-20s %-20s %-20s\n", option4, option5, option6);
+					String option10 = "1-Progress", option11 = "2-Rating", option12 = "3-Current Episode";
+					System.out.printf("%-20s %-20s %-20s\n", option10, option11, option12);
 					int choice = scan.nextInt();
-					
-					
+
+
 					if(choice == 1) {
-						
+
 						System.out.println("What is your current progress?");
 						String progress1 = "1-Not Started", progress2 = "2-In Progress", progress3 = "3-Completed";
 						System.out.printf("%-20s %-20s %-20s\n", progress1, progress2, progress3);
 						int progressId = scan.nextInt();
 
-					
-						
-						
+
 						s2U.setProgressID(progressId);
 						userDao.updateShows(s2U);
 						userDao.getShows(user.getUserId());
-						
-						
+
+
 					} else if (choice == 2) {
 						System.out.println("How would you rate the show (1-5)?");
 						int rating = scan.nextInt();
@@ -310,7 +308,6 @@ public class ProgressTrackerDriver {
 
 						userDao.getShows(user.getUserId());
 					}
-
 				}
 
 			} else if(input.equals("3")) {
@@ -336,16 +333,29 @@ public class ProgressTrackerDriver {
 						userDao.removeFavorite(user.getUserId(),showID);
 					}
 				} while (menuChoice != 0);
-			}else if(input.equals("4")) {
+			} else if(input.equals("4")) {
 				System.out.println("Which Show Would you like to delete?");
 				int showId = scan.nextInt();
 				userDao.deleteUserShowById(showId);
+
+			} else if (input.equals("5")) {
+				userDao.getAllOtherUsers(user);
+				System.out.println();
+				System.out.println("Enter the username of the user whose list you want to view");
+				scan.nextLine();
+				String chosenUser = scan.nextLine();
+				User selectedUser = userDao.getUserByUsername(chosenUser);
+
+				if (selectedUser == null) {
+					System.out.println("User could not be found. Try again");
+				} else {
+					printUserShows(selectedUser.getUserId());
+				}
 			}
 			else if(input.equals("q")) {
 				System.out.println("Signing out...");
-			
 			}
-			
+
 			return input;
 		} catch (InputMismatchException e) {
 			System.out.println("Invalid choice entered");
@@ -354,29 +364,29 @@ public class ProgressTrackerDriver {
 		}
 		return null;
 	}
-	
+
 	public static String promptAdminActions(Scanner scan) {
-		
+
 		String option1 = "1-Create Show", option2 = "2-Update Show", option3 = "3-Delete Show", option4 = "q-Quit";
 		System.out.println("\nWhat would you like to do?");
 		System.out.printf("%-20s %-20s %-20s %-20s\n",option1, option2, option3, option4);
 		String menuChoice = null;
-		
+
 		try {
-			
+
 			menuChoice = scan.next();
 			scan.nextLine();
-			
+
 			return menuChoice;
-			
+
 		} catch (InputMismatchException e) {
 			System.out.println("Invalid choice entered");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
-		
+
 	}
 	public static void SignUp(Scanner scanner){
 		System.out.print("Username:");
