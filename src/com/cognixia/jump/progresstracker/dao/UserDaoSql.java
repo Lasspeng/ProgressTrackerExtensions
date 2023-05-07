@@ -234,12 +234,13 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 			pstmt.setInt(1,userID);
 			ResultSet rs=pstmt.executeQuery();
 			System.out.printf("%20s %20s\n","Show ID","Name" );
-			System.out.println("------------------------------");
+			System.out.println("-------------------------------------------------------------------");
 			while(rs.next()){
 				int showID=rs.getInt("show_id");
 				String name=rs.getString("name");
 				System.out.printf("%20s %20s\n", showID,name);
 			}
+			System.out.println();
 		} catch (SQLException e) {
 			System.out.println("Could not get user favorites");
 		}
@@ -411,11 +412,17 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 		return Optional.empty();
 	}
 
-	public boolean deleteUserShowById(int showID) {
+	public boolean deleteUserShowById(int showID, int userId) {
 		try {
-			PreparedStatement pstmt = conn.prepareStatement("Delete from users_shows where ShowID = ?" );
+			PreparedStatement pstmt = conn.prepareStatement("Delete from users_shows where ShowID = ? and UserId = ?" );
 			pstmt.setInt(1,showID);
-			pstmt.executeUpdate();
+			pstmt.setInt(2, userId);
+			int deleted = pstmt.executeUpdate();
+			if (deleted == 0) {
+				System.out.println("Show could not be deleted. Try again.");
+			} else {
+				System.out.println("Show successfully deleted.");
+			}
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
