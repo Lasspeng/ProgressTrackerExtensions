@@ -19,6 +19,9 @@ public interface UserDao {
 
 	public void getAllOtherUsers(User currentUser);
 
+	public void getMessages(int currentUserId, String otherUsername);
+	public void createMessage(int currentUserId, String otherUsername, String message);
+
 	public User getUserByUsername(String username);
 	
 	public Optional<Show> getShowById(int id);
@@ -34,7 +37,7 @@ public interface UserDao {
 
 
 	
-	public boolean deleteUserShowById(int showId);
+	public boolean deleteUserShowById(int showId, int userId);
 	
 	// Admin class that implements this interface will have create, update, and delete functions within its own class
 	

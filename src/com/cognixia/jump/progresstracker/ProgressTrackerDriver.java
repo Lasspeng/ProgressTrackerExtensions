@@ -16,6 +16,7 @@ import com.cognixia.jump.progresstracker.dao.UserDao;
 import com.cognixia.jump.progresstracker.dao.UserDaoSql;
 import com.cognixia.jump.progresstracker.dao.UserNotFoundException;
 import com.cognixia.jump.progresstracker.dao.UserShow;
+import com.cognixia.jump.util.Colors;
 
 
 //import com.cognixia.jump.progresstracker.dao.*;
@@ -27,27 +28,29 @@ public class ProgressTrackerDriver {
 		String username = null;
 		String password = null;
 		String menuChoice ;
-		System.out.println("Welcome to the TV Show Tracker!");
+		System.out.println();
+		System.out.println(Colors.PURPLE + "Welcome to the TV Show Tracker!" + Colors.RESET);
 
 		// Use try-with-resources to automatically close scanner
 		try (Scanner scan = new Scanner(System.in)) {
 			User u1;
 			int choice;
 			do {
-				System.out.println("1- Sign Up\t2- Login \t0-Exit");
+				System.out.println(Colors.BLUE + "1- Sign Up\t2- Login \t0-Exit" + Colors.RESET);
+//				System.out.printf(Colors.BLUE + " %-12s  %-12s  %-12s %n", "1) Sign Up", "2) Login", "0) Exit" + Colors.RESET);
 				choice = scan.nextInt();
 				if (choice == 1) {
 					SignUp(scan);
 				} else if (choice == 2) {
 					do {
-						System.out.print("Username: ");
+						System.out.print(Colors.GREEN + "Username: " + Colors.RESET);
 						username = scan.next();
-						System.out.print("Password: ");
+						System.out.print(Colors.GREEN + "Password: " + Colors.RESET);
 						password = scan.next();
 						u1 = checkUser(username, password);
 					}
 					while (u1.getUsername() == null);
-					System.out.println("Welcome " + u1.getUsername() + "!" + "\n\n");
+					System.out.println(Colors.PURPLE + "Welcome " + u1.getUsername() + "!" + "\n\n" + Colors.RESET);
 
 					if (u1.getRoleType() == 0) {
 						printUserShows(u1.getUserId());
@@ -155,6 +158,7 @@ public class ProgressTrackerDriver {
 			e.printStackTrace();
 		}
 	}
+
 	public static User checkUser(String username, String password) {
 		// check user data with database
 		UserDao userDao = new UserDaoSql();
@@ -208,9 +212,9 @@ public class ProgressTrackerDriver {
 
 	public static String promptUserActions(User user,Scanner scan) {
 
-		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-Delete Show", option5 = "5-View Other Users' Lists", option0 = "q-Quit";
-		System.out.println("\nWhat would you like to do?");
-		System.out.printf("%-20s %-20s %-20s %-20s %-27s %-20s\n", option1, option2, option3, option4, option5, option0);
+		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-Delete Show", option5 = "5-View Other Users' Lists", option6 = "6-Messages", option0 = "q-Quit";
+		System.out.println(Colors.PURPLE + "\nWhat would you like to do?" + Colors.RESET);
+		System.out.printf(Colors.BLUE + "%-17s %-20s %-20s %-20s %-29s %-15s %-20s\n", option1, option2, option3, option4, option5, option6, option0 + Colors.RESET);
 
 
 		UserDao userDao = new UserDaoSql();
@@ -239,21 +243,21 @@ public class ProgressTrackerDriver {
 				if(currShow.isPresent()) {
 					Show validShow = currShow.get();
 
-						if (currEp > validShow.getNumEp()) {
-							try {
-								throw new CurrentEpOverTotalException(currEp, validShow.getNumEp());
-							}catch (CurrentEpOverTotalException e) {
-								System.out.println("Invalid number");
-							}
-						}else{
-							UserShow userShow = new UserShow(userId, showId, progressId, rating, currEp);
-							userDao.addShows(userShow);
-
-							userDao.getShows(user.getUserId());
-
+					if (currEp > validShow.getNumEp()) {
+						try {
+							throw new CurrentEpOverTotalException(currEp, validShow.getNumEp());
+						}catch (CurrentEpOverTotalException e) {
+							System.out.println("Invalid number");
 						}
+					}else{
+						UserShow userShow = new UserShow(userId, showId, progressId, rating, currEp);
+						userDao.addShows(userShow);
+
+						userDao.getShows(user.getUserId());
+
 					}
-				
+				}
+
 			} else if(input.equals("2")) {
 				// Gets all the user shows so user knows which one to update
 				userDao.getShows(user.getUserId());
@@ -297,13 +301,13 @@ public class ProgressTrackerDriver {
 						Optional<Show> currShow1 = userDao.getShowById(showId);
 						if(currShow1.isPresent()) {
 							Show validShow1 = currShow1.get();
-						try {
-							validateShowNumber(validShow1, currEp);
-							s2U.setCurrEp(currEp);
-							userDao.updateShows(s2U);
-						} catch (CurrentEpOverTotalException e) {
-							System.out.println(e.getMessage());
-						}
+							try {
+								validateShowNumber(validShow1, currEp);
+								s2U.setCurrEp(currEp);
+								userDao.updateShows(s2U);
+							} catch (CurrentEpOverTotalException e) {
+								System.out.println(e.getMessage());
+							}
 						}
 
 						userDao.getShows(user.getUserId());
@@ -315,44 +319,70 @@ public class ProgressTrackerDriver {
 				do {
 					userDao.getFavorites(user.getUserId());
 
-					System.out.printf("%20s %20s %20s\n", "1- Add Favorite", "2- Remove Favorite", "0- Back");
+					System.out.printf(Colors.BLUE + "%20s %20s %20s\n", "1- Add Favorite", "2- Remove Favorite", "0- Back" + Colors.RESET);
 					menuChoice = scan.nextInt();
 					int showID;
 					if (menuChoice == 1) {
-						System.out.print("Show ID:");
+						System.out.print(Colors.GREEN + "Show ID:" + Colors.RESET);
 						showID = scan.nextInt();
 						Optional<UserShow> userShow = userDao.getUserShow(user.getUserId(), showID);
 						if (userShow.isEmpty()) {
-							System.out.println("This show is not on your list");
+							System.out.println(Colors.PURPLE + "This show is not on your list" + Colors.RESET);
 						} else {
 							userDao.addFavorite(userShow.get());
 						}
 					}else if(menuChoice==2){
-						System.out.print("Show ID:");
+						System.out.print(Colors.GREEN + "Show ID:" + Colors.RESET);
 						showID= scan.nextInt();
 						userDao.removeFavorite(user.getUserId(),showID);
 					}
 				} while (menuChoice != 0);
 			} else if(input.equals("4")) {
-				System.out.println("Which Show Would you like to delete?");
+				userDao.getShows(user.getUserId());
+				System.out.println(Colors.GREEN + "Select the ID of the show you would like to remove from your list" + Colors.RESET);
 				int showId = scan.nextInt();
-				userDao.deleteUserShowById(showId);
+				userDao.deleteUserShowById(showId, user.getUserId());
+				userDao.getShows(user.getUserId());
 
 			} else if (input.equals("5")) {
 				userDao.getAllOtherUsers(user);
 				System.out.println();
-				System.out.println("Enter the username of the user whose list you want to view");
+				System.out.println(Colors.GREEN + "Enter the username of the user whose list you want to view" + Colors.RESET);
 				scan.nextLine();
 				String chosenUser = scan.nextLine();
 				User selectedUser = userDao.getUserByUsername(chosenUser);
 
 				if (selectedUser == null) {
-					System.out.println("User could not be found. Try again");
+					System.out.println(Colors.PURPLE + "User could not be found. Try again" + Colors.RESET);
 				} else {
 					printUserShows(selectedUser.getUserId());
 				}
-			}
-			else if(input.equals("q")) {
+			} else if (input.equals("6")) {
+				userDao.getAllOtherUsers(user);
+				System.out.println(Colors.GREEN + "\nEnter the username of the user whose messages you want to view" + Colors.RESET);
+				scan.nextLine();
+				String chosenUser = scan.nextLine();
+				userDao.getMessages(user.getUserId(), chosenUser);
+
+				String messageInput;
+				do {
+					System.out.println(Colors.BLUE + "1-Send new message \t q-Quit" + Colors.RESET);
+					messageInput = scan.nextLine();
+					switch (messageInput) {
+						case "1": {
+							System.out.println(Colors.GREEN + "Type the message that you want to send to " + chosenUser + Colors.RESET);
+							String message = scan.nextLine();
+							userDao.createMessage(user.getUserId(), chosenUser, message);
+							messageInput = "q";
+							break;
+						}
+						case "q":
+							break;
+						default:
+							System.out.println(Colors.PURPLE + "Incorrect input. Try again" + Colors.RESET);
+					}
+				} while (!messageInput.equals("q"));
+			} else if(input.equals("q")) {
 				System.out.println("Signing out...");
 			}
 
@@ -388,10 +418,11 @@ public class ProgressTrackerDriver {
 		return null;
 
 	}
+
 	public static void SignUp(Scanner scanner){
-		System.out.print("Username:");
+		System.out.print(Colors.GREEN + "Username:" + Colors.RESET);
 		String username= scanner.next();
-		System.out.print("Password:");
+		System.out.print(Colors.GREEN + "Password:" + Colors.RESET);
 		String password= scanner.next();
 		User user=new User(username,password);
 		UserDaoSql userDaoSql=new UserDaoSql();
