@@ -2,11 +2,9 @@ package com.cognixia.jump.progresstracker.dao;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -253,13 +251,60 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 		try (Statement stmt = conn.createStatement();
 			 ResultSet rs = stmt.executeQuery("SELECT UserName FROM Users WHERE RoleType = 0 AND UserID != " + currentUser.getUserId());
 		) {
-			System.out.println("+============================================================================+");
+			System.out.println("--------------------------------------------------");
 			System.out.printf("| %-30s |%n", "Username");
-			System.out.println("+============================================================================+");
+			System.out.println("--------------------------------------------------");
 
 			while (rs.next()) {
 				String username = rs.getString("UserName");
 				System.out.printf("| %-30s |%n", username);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void getMessages(int currentUserId, String otherUsername) {
+		User otherUser = getUserByUsername(otherUsername);
+		if (otherUser == null) {
+			System.out.println("User could not be found. Try again.");
+			return;
+		}
+
+		ArrayList<Message> messages = new ArrayList<>();
+		try (Statement stmt = conn.createStatement();
+			 ResultSet rs = stmt.executeQuery("SELECT * FROM messages WHERE (sender_id = " + currentUserId + " AND recipient_id = " + otherUser.getUserId() + ") OR (sender_id = " + otherUser.getUserId() + " AND recipient_id = " + currentUserId + ") ORDER BY date_created ASC");
+		) {
+			while (rs.next()) {
+				int id = rs.getInt("id");
+				int senderId = rs.getInt("sender_id");
+				int recipientId = rs.getInt("recipient_id");
+				String message = rs.getString("message");
+				Timestamp dateCreated =  rs.getTimestamp("date_created");
+				Message newMessage = new Message(id, senderId, recipientId, message, dateCreated);
+				messages.add(newMessage);
+			}
+
+			for (Message message : messages) {
+				System.out.println("--------------------------------------------------");
+				System.out.println("Sent by: " + (message.getSenderId() == otherUser.getUserId() ? otherUser.getUsername() : "You"));
+				System.out.println("Message sent on: " + message.getDateCreated() + "\n");
+				System.out.println(message.getMessage());
+				System.out.println("--------------------------------------------------");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} ;
+	}
+
+	public void createMessage(int currentUserId, String otherUsername, String message) {
+		User otherUser = getUserByUsername(otherUsername);
+		try (Statement stmt = conn.createStatement()) {
+			int updated = stmt.executeUpdate("INSERT INTO messages VALUES(null, " + currentUserId + ", " + otherUser.getUserId() + ", '" + message + "', NOW())");
+			if (updated == 0) {
+				System.out.println("Could not send message. Try again.");
+			} else {
+				System.out.println("Message successfully sent.");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -294,26 +339,26 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 
 	@Override
 	public boolean getAllShows(int id) {
-		
+
 		try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where ShowID not in (select ShowID from users_shows where UserID=?)")){
 			pstmt.setInt(1,id);
 			ResultSet rs = pstmt.executeQuery();
-				System.out.printf("%10s %20s %20s %20s", "Show ID","Name", "Total Episodes","Description");
-				System.out.println("\n----------------------------------------------------------------------------------------------------------------");		
-				while(rs.next()) {
-					
-					int showId = rs.getInt("ShowID");
-					String name = rs.getString("Name");
-					String descript = rs.getString("Descript");
-					int numEp = rs.getInt("TotalEps");
-					
-					System.out.printf("%10s %20s %20s %-10s%n", showId,name,numEp, descript);	
-					
-				}
-				
-			} catch(Exception e) {
-				e.printStackTrace();
+			System.out.printf("%10s %20s %20s %20s", "Show ID","Name", "Total Episodes","Description");
+			System.out.println("\n----------------------------------------------------------------------------------------------------------------");
+			while(rs.next()) {
+
+				int showId = rs.getInt("ShowID");
+				String name = rs.getString("Name");
+				String descript = rs.getString("Descript");
+				int numEp = rs.getInt("TotalEps");
+
+				System.out.printf("%10s %20s %20s %-10s%n", showId,name,numEp, descript);
+
 			}
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
@@ -365,22 +410,19 @@ try(PreparedStatement pstmt = conn.prepareStatement("select * from shows where S
 
 		return Optional.empty();
 	}
-	
+
 	public boolean deleteUserShowById(int showID) {
 		try {
 			PreparedStatement pstmt = conn.prepareStatement("Delete from users_shows where ShowID = ?" );
 			pstmt.setInt(1,showID);
 			pstmt.executeUpdate();
-			
-		} 
-		catch (SQLException e) {
+
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
 	}
-
-	
 
 
 }

@@ -155,6 +155,7 @@ public class ProgressTrackerDriver {
 			e.printStackTrace();
 		}
 	}
+
 	public static User checkUser(String username, String password) {
 		// check user data with database
 		UserDao userDao = new UserDaoSql();
@@ -208,9 +209,9 @@ public class ProgressTrackerDriver {
 
 	public static String promptUserActions(User user,Scanner scan) {
 
-		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-Delete Show", option5 = "5-View Other Users' Lists", option0 = "q-Quit";
+		String option1 = "1-Add Show", option2 = "2-Update Progress", option3="3-View Favorites", option4 = "4-Delete Show", option5 = "5-View Other Users' Lists", option6 = "6-Messages", option0 = "q-Quit";
 		System.out.println("\nWhat would you like to do?");
-		System.out.printf("%-20s %-20s %-20s %-20s %-27s %-20s\n", option1, option2, option3, option4, option5, option0);
+		System.out.printf("%-20s %-20s %-20s %-20s %-27s %-20s %-20s\n", option1, option2, option3, option4, option5, option6, option0);
 
 
 		UserDao userDao = new UserDaoSql();
@@ -239,21 +240,21 @@ public class ProgressTrackerDriver {
 				if(currShow.isPresent()) {
 					Show validShow = currShow.get();
 
-						if (currEp > validShow.getNumEp()) {
-							try {
-								throw new CurrentEpOverTotalException(currEp, validShow.getNumEp());
-							}catch (CurrentEpOverTotalException e) {
-								System.out.println("Invalid number");
-							}
-						}else{
-							UserShow userShow = new UserShow(userId, showId, progressId, rating, currEp);
-							userDao.addShows(userShow);
-
-							userDao.getShows(user.getUserId());
-
+					if (currEp > validShow.getNumEp()) {
+						try {
+							throw new CurrentEpOverTotalException(currEp, validShow.getNumEp());
+						}catch (CurrentEpOverTotalException e) {
+							System.out.println("Invalid number");
 						}
+					}else{
+						UserShow userShow = new UserShow(userId, showId, progressId, rating, currEp);
+						userDao.addShows(userShow);
+
+						userDao.getShows(user.getUserId());
+
 					}
-				
+				}
+
 			} else if(input.equals("2")) {
 				// Gets all the user shows so user knows which one to update
 				userDao.getShows(user.getUserId());
@@ -297,13 +298,13 @@ public class ProgressTrackerDriver {
 						Optional<Show> currShow1 = userDao.getShowById(showId);
 						if(currShow1.isPresent()) {
 							Show validShow1 = currShow1.get();
-						try {
-							validateShowNumber(validShow1, currEp);
-							s2U.setCurrEp(currEp);
-							userDao.updateShows(s2U);
-						} catch (CurrentEpOverTotalException e) {
-							System.out.println(e.getMessage());
-						}
+							try {
+								validateShowNumber(validShow1, currEp);
+								s2U.setCurrEp(currEp);
+								userDao.updateShows(s2U);
+							} catch (CurrentEpOverTotalException e) {
+								System.out.println(e.getMessage());
+							}
 						}
 
 						userDao.getShows(user.getUserId());
@@ -351,8 +352,32 @@ public class ProgressTrackerDriver {
 				} else {
 					printUserShows(selectedUser.getUserId());
 				}
-			}
-			else if(input.equals("q")) {
+			} else if (input.equals("6")) {
+				userDao.getAllOtherUsers(user);
+				System.out.println("\nEnter the username of the user whose messages you want to view");
+				scan.nextLine();
+				String chosenUser = scan.nextLine();
+				userDao.getMessages(user.getUserId(), chosenUser);
+
+				String messageInput;
+				do {
+					System.out.println("1-Send new message     q-Quit");
+					messageInput = scan.nextLine();
+					switch (messageInput) {
+						case "1": {
+							System.out.println("Type the message that you want to send to " + chosenUser);
+							String message = scan.nextLine();
+							userDao.createMessage(user.getUserId(), chosenUser, message);
+							messageInput = "q";
+							break;
+						}
+						case "q":
+							break;
+						default:
+							System.out.println("Incorrect input. Try again");
+					}
+				} while (!messageInput.equals("q"));
+			} else if(input.equals("q")) {
 				System.out.println("Signing out...");
 			}
 
@@ -388,6 +413,7 @@ public class ProgressTrackerDriver {
 		return null;
 
 	}
+
 	public static void SignUp(Scanner scanner){
 		System.out.print("Username:");
 		String username= scanner.next();

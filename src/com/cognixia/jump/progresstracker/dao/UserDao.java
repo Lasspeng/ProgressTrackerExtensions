@@ -19,6 +19,9 @@ public interface UserDao {
 
 	public void getAllOtherUsers(User currentUser);
 
+	public void getMessages(int currentUserId, String otherUsername);
+	public void createMessage(int currentUserId, String otherUsername, String message);
+
 	public User getUserByUsername(String username);
 	
 	public Optional<Show> getShowById(int id);
